@@ -9,45 +9,68 @@
 
     public class DataReader
     {
-        IEnumerable<ImportedObject> ImportedObjects;
+        //IEnumerable<ImportedObject> ImportedObjects;
 
-        public void ImportAndPrintData(string fileToImport, bool printData = true)
+        //1. Zamiast 2 klas ImportedObjectBaseClass i ImportedObject wystaryczy jedna ImportedObject - publiczna
+        //   z wszystkimi polami jako własciwościami i z warościami domyślnymi. W orginle element Name z klasy ImportedOblect przykrywał element klasy bazowej
+        //2. Trzeba kontrolować, czy importowana linia dzili się faktycznie na 7 elementów oddzielonych średnikiem.
+        //3. Jest błąd w pętli czytania listy, <= zastąpić należy przez <, ale można wyeliminować początkowe w wczytywanie linii pliku do listy
+        //4. Funkcje w pętli opisanej jako "clear and correct imported data" można zrealizowac od razu przy czytaniu danych - jeden przebieg mniej
+        //5. Metody zostają rozdzielone na czytanie danych i wydruk danych. Lista danych jest publiczna
+        //   PrintData przeciążona - może drukować zewnątrzną listę lub zapisaną w klasie.
+
+        public IEnumerable<ImportedObject> ImportedObjects = new List<ImportedObject>() { new ImportedObject() };
+
+        public IEnumerable<ImportedObject> ImportData(string fileToImport)
         {
-            ImportedObjects = new List<ImportedObject>() { new ImportedObject() };
-
             var streamReader = new StreamReader(fileToImport);
 
-            var importedLines = new List<string>();
+            //var importedLines = new List<string>();
             while (!streamReader.EndOfStream)
             {
                 var line = streamReader.ReadLine();
-                importedLines.Add(line);
-            }
-
-            for (int i = 0; i <= importedLines.Count; i++)
-            {
-                var importedLine = importedLines[i];
-                var values = importedLine.Split(';');
+                var values = line.TrimEnd().Split(';');
+                if (values.Length < 7)
+                    continue;
                 var importedObject = new ImportedObject();
-                importedObject.Type = values[0];
-                importedObject.Name = values[1];
-                importedObject.Schema = values[2];
-                importedObject.ParentName = values[3];
-                importedObject.ParentType = values[4];
-                importedObject.DataType = values[5];
+                importedObject.Type = values[0].Trim().Replace(" ", "").Replace(Environment.NewLine, "").ToUpper(); 
+                importedObject.Name = values[1].Trim().Replace(" ", "").Replace(Environment.NewLine, "").ToUpper();
+                importedObject.Schema = values[2].Trim().Replace(" ", "").Replace(Environment.NewLine, "").ToUpper(); ;
+                importedObject.ParentName = values[3].Trim().Replace(" ", "").Replace(Environment.NewLine, "").ToUpper(); 
+                importedObject.ParentType = values[4].Trim().Replace(" ", "").Replace(Environment.NewLine, "").ToUpper(); 
+                importedObject.DataType = values[5].Trim().Replace(" ", "").Replace(Environment.NewLine, "").ToUpper(); ;
                 importedObject.IsNullable = values[6];
                 ((List<ImportedObject>)ImportedObjects).Add(importedObject);
+
+                //importedLines.Add(line);
             }
 
+            //for (int i = 0; i < importedLines.Count; i++)
+            //{
+            //    var importedLine = importedLines[i];
+            //    var values = importedLine.Split(';');
+            //    if (values.Length < 7)
+            //        continue;
+            //    var importedObject = new ImportedObject();
+            //    importedObject.Type = values[0];
+            //    importedObject.Name = values[1];
+            //    importedObject.Schema = values[2];
+            //    importedObject.ParentName = values[3];
+            //    importedObject.ParentType = values[4];
+            //    importedObject.DataType = values[5];
+            //    importedObject.IsNullable = values[6];
+            //    ((List<ImportedObject>)ImportedObjects).Add(importedObject);
+            //}
+
             // clear and correct imported data
-            foreach (var importedObject in ImportedObjects)
-            {
-                importedObject.Type = importedObject.Type.Trim().Replace(" ", "").Replace(Environment.NewLine, "").ToUpper();
-                importedObject.Name = importedObject.Name.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
-                importedObject.Schema = importedObject.Schema.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
-                importedObject.ParentName = importedObject.ParentName.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
-                importedObject.ParentType = importedObject.ParentType.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
-            }
+            //foreach (var importedObject in ImportedObjects)
+            //{
+            //    importedObject.Type = importedObject.Type.Trim().Replace(" ", "").Replace(Environment.NewLine, "").ToUpper();
+            //    importedObject.Name = importedObject.Name.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
+            //    importedObject.Schema = importedObject.Schema.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
+            //    importedObject.ParentName = importedObject.ParentName.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
+            //    importedObject.ParentType = importedObject.ParentType.Trim().Replace(" ", "").Replace(Environment.NewLine, "");
+            //}
 
             // assign number of children
             for (int i = 0; i < ImportedObjects.Count(); i++)
@@ -65,14 +88,24 @@
                 }
             }
 
-            foreach (var database in ImportedObjects)
+            return ImportedObjects;
+        }
+
+        public void PrintData()
+        {
+            this.PrintData(this.ImportedObjects);
+        }
+
+        public void PrintData(IEnumerable<ImportedObject> rImportedObjects)
+        {
+            foreach (var database in rImportedObjects)
             {
                 if (database.Type == "DATABASE")
                 {
                     Console.WriteLine($"Database '{database.Name}' ({database.NumberOfChildren} tables)");
 
                     // print all database's tables
-                    foreach (var table in ImportedObjects)
+                    foreach (var table in rImportedObjects)
                     {
                         if (table.ParentType.ToUpper() == database.Type)
                         {
@@ -97,34 +130,25 @@
                 }
             }
 
-            Console.ReadLine();
         }
+
+
     }
 
-    class ImportedObject : ImportedObjectBaseClass
+
+    public class ImportedObject 
     {
-        public string Name
-        {
-            get;
-            set;
-        }
-        public string Schema;
+        public string Name { get; set; } = "";
+        public string Type { get; set; } = "";
 
-        public string ParentName;
-        public string ParentType
-        {
-            get; set;
-        }
+        public string Schema { get; set; } = "";
 
-        public string DataType { get; set; }
-        public string IsNullable { get; set; }
+        public string ParentName { get; set; } = "";
+        public string ParentType { get; set; } = "";
+        public string DataType { get; set; } = "";
+        public string IsNullable { get; set; } = "";
 
-        public double NumberOfChildren;
+        public double NumberOfChildren { get; set; } = 0;
     }
 
-    class ImportedObjectBaseClass
-    {
-        public string Name { get; set; }
-        public string Type { get; set; }
-    }
 }
