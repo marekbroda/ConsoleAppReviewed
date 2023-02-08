@@ -11,13 +11,13 @@
     {
         //IEnumerable<ImportedObject> ImportedObjects;
 
-        //1. Zamiast 2 klas ImportedObjectBaseClass i ImportedObject wystaryczy jedna ImportedObject - publiczna
-        //   z wszystkimi polami jako własciwościami i z warościami domyślnymi. W orginle element Name z klasy ImportedOblect przykrywał element klasy bazowej
-        //2. Trzeba kontrolować, czy importowana linia dzili się faktycznie na 7 elementów oddzielonych średnikiem.
+        //1. Zamiast 2 klas ImportedObjectBaseClass i ImportedObject wystarczy jedna ImportedObject - publiczna
+        //   z wszystkimi polami jako własciwościami i z warościami domyślnymi. W oryginale element Name z klasy ImportedOblect przykrywał element klasy bazowej
+        //2. Trzeba kontrolować, czy importowana linia dzieli się faktycznie na 7 elementów oddzielonych średnikiem.
         //3. Jest błąd w pętli czytania listy, <= zastąpić należy przez <, ale można wyeliminować początkowe w wczytywanie linii pliku do listy
         //4. Funkcje w pętli opisanej jako "clear and correct imported data" można zrealizowac od razu przy czytaniu danych - jeden przebieg mniej
         //5. Metody zostają rozdzielone na czytanie danych i wydruk danych. Lista danych jest publiczna
-        //   PrintData przeciążona - może drukować zewnątrzną listę lub zapisaną w klasie.
+        //   PrintData przeciążona - może drukować zewnętrzną listę lub zapisaną w klasie.
 
         public IEnumerable<ImportedObject> ImportedObjects = new List<ImportedObject>() { new ImportedObject() };
 
